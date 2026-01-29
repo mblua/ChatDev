@@ -1,0 +1,1 @@
+Develop a MuleSoft application called "recipe-storage-sapi" that implements a Recipe Storage System API. Endpoint: POST /api/recipes receiving JSON with name, ingredients, instructions, servings. Save to filesystem as {timestamp}_{name}.json. Return 201 with message, recipeId, filePath, timestamp. Include error handling and logging.
