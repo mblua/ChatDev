@@ -170,3 +170,33 @@ Create a MuleSoft application that:
 - **Modelo:** gpt-4o (LM Studio lo traduce al modelo local cargado)
 - **Temperature:** Baja (0.1-0.2) para codigo consistente
 - **Max iterations:** 3 ciclos de correccion maximo
+
+## Documentacion de Referencia
+
+Los agentes tienen acceso directo a la documentacion MuleSoft copiada al workspace:
+
+**Ruta en workspace:** `mule-docs/`
+
+| Recurso | Ruta | Uso |
+|---------|------|-----|
+| Template API-led | `mule-docs/templates/mulesoft-api-led-app-template.md` | Estructura base para apps |
+| Patrones | `mule-docs/docs/patterns/` | Patrones de integracion |
+| Arquitecturas | `mule-docs/docs/architectures/` | Arquitecturas de referencia |
+| Convenciones | `mule-docs/conventions/naming-conventions.md` | Estandares de nombrado |
+| Governance | `mule-docs/docs/governance/` | Politicas y gobernanza API |
+
+### Tooling Habilitado
+
+Cada agente tiene acceso a herramientas de lectura de archivos:
+
+| Herramienta | Descripcion |
+|-------------|-------------|
+| `list_directory` | Listar contenido de carpetas |
+| `read_file_segment` | Leer contenido de archivos |
+| `search_in_files` | Buscar texto en archivos |
+| `describe_available_files` | Ver archivos disponibles |
+| `save_file` | Guardar archivos (solo MuleDeveloper) |
+
+Los agentes pueden consultar la documentacion automaticamente durante la ejecucion.
+
+**Fuente original:** `E:\0_mmb\0_repos_phi\phi_doc-llm-ready`

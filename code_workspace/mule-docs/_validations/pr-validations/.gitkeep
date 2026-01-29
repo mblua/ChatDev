@@ -1,0 +1,3 @@
+# This file ensures the pr-validations directory is tracked by git
+# PR validation reports will be stored here with naming convention:
+# PR<NUMBER>_validation_<YYYYMMDD_hhmmss>_<MODEL>.md

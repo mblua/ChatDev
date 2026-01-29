@@ -36,9 +36,27 @@ graph:
           - Describe the flow architecture
 
           Be detailed and specific for MuleSoft Anypoint Platform.
+
+          REFERENCE DOCUMENTATION:
+          You have access to internal MuleSoft standards and templates in the workspace at:
+          mule-docs/
+          Key resources (use the file tools to read them):
+          - mule-docs/templates/mulesoft-api-led-app-template.md (project structure and code skeletons)
+          - mule-docs/conventions/naming-conventions.md (naming standards)
+          - mule-docs/docs/architectures/ (reference architectures)
+          - mule-docs/docs/patterns/ (integration patterns)
+          Use list_directory and read_file_segment to consult these as needed.
         params:
           temperature: 0.2
           max_tokens: 4000
+        tooling:
+          - type: function
+            config:
+              tools:
+                - name: list_directory
+                - name: read_file_segment
+                - name: search_in_files
+                - name: describe_available_files
 
     # Nodo 2: Desarrollador Mule
     - id: MuleDeveloper
@@ -68,9 +86,27 @@ graph:
           - Add inline comments explaining complex logic
 
           If you receive feedback about errors, fix them and provide the corrected code.
+
+          REFERENCE DOCUMENTATION:
+          You have access to internal MuleSoft standards and templates in the workspace at:
+          mule-docs/
+          Key resources (use the file tools to read them):
+          - mule-docs/templates/mulesoft-api-led-app-template.md (project structure: global.xml, interface.xml, implementation.xml)
+          - mule-docs/conventions/naming-conventions.md (kebab-case for files, camelCase for variables)
+          - mule-docs/docs/patterns/ (integration patterns)
+          Use list_directory and read_file_segment to consult these standards when generating code.
         params:
           temperature: 0.1
           max_tokens: 6000
+        tooling:
+          - type: function
+            config:
+              tools:
+                - name: list_directory
+                - name: read_file_segment
+                - name: search_in_files
+                - name: save_file
+                - name: describe_available_files
 
     # Nodo 3: QA/Verificador
     - id: QAVerifier
@@ -106,9 +142,26 @@ graph:
             - Suggested fix
 
           Be thorough but fair. Only reject for real issues, not style preferences.
+
+          REFERENCE DOCUMENTATION:
+          You have access to internal MuleSoft standards in the workspace at:
+          mule-docs/
+          Key resources (use the file tools to read them):
+          - mule-docs/templates/mulesoft-api-led-app-template.md (expected structure and compliance checklist)
+          - mule-docs/conventions/naming-conventions.md (naming standards to enforce)
+          - mule-docs/docs/governance/ (governance policies)
+          Use list_directory and read_file_segment to validate organizational compliance.
         params:
           temperature: 0.1
           max_tokens: 3000
+        tooling:
+          - type: function
+            config:
+              tools:
+                - name: list_directory
+                - name: read_file_segment
+                - name: search_in_files
+                - name: describe_available_files
 
     # Nodo 4: Loop Counter para limitar iteraciones
     - id: RevisionLoopCounter
