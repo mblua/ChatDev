@@ -1,0 +1,164 @@
+graph:
+  id: MB_mule_app
+  description: Genera aplicaciones MuleSoft con ciclo de especificacion, desarrollo y verificacion
+  log_level: DEBUG
+  is_majority_voting: false
+  start:
+    - SpecArchitect
+  end:
+    - FINAL
+  nodes:
+    # Nodo 1: Arquitecto de Especificaciones
+    - id: SpecArchitect
+      type: agent
+      description: Genera la especificacion RAML/OAS y diseño de la aplicacion Mule
+      context_window: -1
+      config:
+        provider: openai
+        name: gpt-4o
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        role: |
+          You are a MuleSoft Solutions Architect specialized in API-led connectivity.
+
+          Your task is to create the technical specification for a Mule application including:
+          1. API Specification (RAML 1.0 or OAS 3.0)
+          2. Data types and schemas
+          3. Integration architecture (Experience, Process, System layers)
+          4. Connector requirements
+          5. Error handling strategy
+          6. Security considerations
+
+          Output format:
+          - Start with a brief overview
+          - Provide the complete RAML/OAS specification in code blocks
+          - List all required Mule connectors
+          - Describe the flow architecture
+
+          Be detailed and specific for MuleSoft Anypoint Platform.
+        params:
+          temperature: 0.2
+          max_tokens: 4000
+
+    # Nodo 2: Desarrollador Mule
+    - id: MuleDeveloper
+      type: agent
+      description: Implementa la aplicacion Mule basada en la especificacion
+      context_window: -1
+      config:
+        provider: openai
+        name: gpt-4o
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        role: |
+          You are a Senior MuleSoft Developer with expertise in Mule 4 and Anypoint Studio.
+
+          Based on the specification provided, create the complete Mule application including:
+          1. Complete Mule XML configuration files
+          2. DataWeave transformations
+          3. Global configurations (HTTP Listener, connectors)
+          4. Error handlers
+          5. Properties files (config.yaml or .properties)
+          6. pom.xml dependencies
+
+          Output format:
+          - Provide each file in separate code blocks with filename comments
+          - Use Mule 4 syntax and best practices
+          - Include complete DataWeave scripts
+          - Add inline comments explaining complex logic
+
+          If you receive feedback about errors, fix them and provide the corrected code.
+        params:
+          temperature: 0.1
+          max_tokens: 6000
+
+    # Nodo 3: QA/Verificador
+    - id: QAVerifier
+      type: agent
+      description: Verifica la implementacion y reporta errores
+      context_window: -1
+      config:
+        provider: openai
+        name: gpt-4o
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        role: |
+          You are a MuleSoft QA Engineer and Code Reviewer.
+
+          Review the Mule application code and verify:
+          1. XML syntax correctness
+          2. DataWeave expression validity
+          3. Proper error handling implementation
+          4. Security best practices
+          5. Alignment with the original specification
+          6. Mule 4 best practices compliance
+
+          Output format:
+          If ALL checks pass:
+            Start your response with: "APPROVED"
+            Then provide a brief summary of what was verified.
+
+          If there are issues:
+            Start your response with: "NEEDS_REVISION"
+            Then list each issue with:
+            - File/component affected
+            - Description of the problem
+            - Suggested fix
+
+          Be thorough but fair. Only reject for real issues, not style preferences.
+        params:
+          temperature: 0.1
+          max_tokens: 3000
+
+    # Nodo 4: Loop Counter para limitar iteraciones
+    - id: RevisionLoopCounter
+      type: loop_counter
+      description: Limita las iteraciones de revision a 3
+      context_window: 0
+      config:
+        max_iterations: 3
+        reset_on_emit: false
+        message: 'Maximum revision iterations reached. Proceeding with current implementation.'
+
+    # Nodo 5: Final
+    - id: FINAL
+      type: passthrough
+      description: Nodo final del workflow
+      context_window: 0
+      config: {}
+
+  edges:
+    # Spec -> Developer
+    - from: SpecArchitect
+      to: MuleDeveloper
+
+    # Developer -> QA
+    - from: MuleDeveloper
+      to: QAVerifier
+
+    # QA aprobado -> Final
+    - from: QAVerifier
+      to: FINAL
+      condition:
+        type: keyword
+        config:
+          any:
+            - APPROVED
+          case_sensitive: false
+
+    # QA con errores -> Loop Counter
+    - from: QAVerifier
+      to: RevisionLoopCounter
+      condition:
+        type: keyword
+        config:
+          any:
+            - NEEDS_REVISION
+          case_sensitive: false
+
+    # Loop Counter -> Developer (para correccion)
+    - from: RevisionLoopCounter
+      to: MuleDeveloper
+
+  memory: []
+  initial_instruction: ''

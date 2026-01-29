@@ -1,0 +1,34 @@
+graph:
+  id: MB_simple_python_gen
+  description: Genera scripts Python basado en solicitud del usuario
+  log_level: DEBUG
+  is_majority_voting: false
+  start:
+    - CodeGenerator
+  end:
+    - CodeGenerator
+  nodes:
+    - id: CodeGenerator
+      type: agent
+      description: Genera codigo Python basado en el prompt del usuario
+      context_window: -1
+      config:
+        provider: openai
+        name: gpt-4o
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        role: |
+          You are an expert Python developer. Generate clean, well-documented, executable Python code based on user requirements.
+
+          Guidelines:
+          - Always include necessary imports
+          - Add docstrings and comments for clarity
+          - Handle potential errors appropriately
+          - Wrap all code in ```python``` code blocks
+          - Make the code complete and ready to run
+        params:
+          temperature: 0.1
+          max_tokens: 4000
+  edges: []
+  memory: []
+  initial_instruction: ''
