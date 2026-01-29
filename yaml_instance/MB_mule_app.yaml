@@ -12,43 +12,25 @@ graph:
     - id: SpecArchitect
       type: agent
       description: Genera la especificacion RAML/OAS y diseño de la aplicacion Mule
-      context_window: -1
+      context_window: 2
       config:
         provider: openai
         name: gpt-4o
         base_url: ${BASE_URL}
         api_key: ${API_KEY}
         role: |
-          You are a MuleSoft Solutions Architect specialized in API-led connectivity.
+          MuleSoft Solutions Architect. Create technical spec for Mule app:
+          - RAML 1.0 or OAS 3.0 specification (in code block)
+          - Data types/schemas
+          - API-led layer (Experience/Process/System)
+          - Required connectors
+          - Error handling strategy
 
-          Your task is to create the technical specification for a Mule application including:
-          1. API Specification (RAML 1.0 or OAS 3.0)
-          2. Data types and schemas
-          3. Integration architecture (Experience, Process, System layers)
-          4. Connector requirements
-          5. Error handling strategy
-          6. Security considerations
-
-          Output format:
-          - Start with a brief overview
-          - Provide the complete RAML/OAS specification in code blocks
-          - List all required Mule connectors
-          - Describe the flow architecture
-
-          Be detailed and specific for MuleSoft Anypoint Platform.
-
-          REFERENCE DOCUMENTATION:
-          You have access to internal MuleSoft standards and templates in the workspace at:
-          mule-docs/
-          Key resources (use the file tools to read them):
-          - mule-docs/templates/mulesoft-api-led-app-template.md (project structure and code skeletons)
-          - mule-docs/conventions/naming-conventions.md (naming standards)
-          - mule-docs/docs/architectures/ (reference architectures)
-          - mule-docs/docs/patterns/ (integration patterns)
-          Use list_directory and read_file_segment to consult these as needed.
+          DOCS: mule-docs/templates/mulesoft-api-led-app-template.md, mule-docs/conventions/naming-conventions.md
+          Use read_file_segment to consult docs when needed.
         params:
           temperature: 0.2
-          max_tokens: 4000
+          max_tokens: 2000
         tooling:
           - type: function
             config:
@@ -56,101 +38,27 @@ graph:
                 - name: list_directory
                 - name: read_file_segment
                 - name: search_in_files
-                - name: describe_available_files
 
     # Nodo 2: Desarrollador Mule
     - id: MuleDeveloper
       type: agent
       description: Implementa la aplicacion Mule basada en la especificacion
-      context_window: -1
+      context_window: 2
       config:
         provider: openai
         name: gpt-4o
         base_url: ${BASE_URL}
         api_key: ${API_KEY}
         role: |
-          You are a Senior MuleSoft Developer with expertise in Mule 4 and Anypoint Studio.
+          Senior MuleSoft Developer (Mule 4). Create complete application:
+          - Mule XML configs (global.xml, interface.xml, implementation.xml)
+          - DataWeave transformations
+          - Error handlers
+          - config.yaml properties
+          - pom.xml dependencies
 
-          Based on the specification provided, create the complete Mule application including:
-          1. Complete Mule XML configuration files
-          2. DataWeave transformations
-          3. Global configurations (HTTP Listener, connectors)
-          4. Error handlers
-          5. Properties files (config.yaml or .properties)
-          6. pom.xml dependencies
-
-          Output format:
-          - Provide each file in separate code blocks with filename comments
-          - Use Mule 4 syntax and best practices
-          - Include complete DataWeave scripts
-          - Add inline comments explaining complex logic
-
-          If you receive feedback about errors, fix them and provide the corrected code.
-
-          REFERENCE DOCUMENTATION:
-          You have access to internal MuleSoft standards and templates in the workspace at:
-          mule-docs/
-          Key resources (use the file tools to read them):
-          - mule-docs/templates/mulesoft-api-led-app-template.md (project structure: global.xml, interface.xml, implementation.xml)
-          - mule-docs/conventions/naming-conventions.md (kebab-case for files, camelCase for variables)
-          - mule-docs/docs/patterns/ (integration patterns)
-          Use list_directory and read_file_segment to consult these standards when generating code.
-        params:
-          temperature: 0.1
-          max_tokens: 6000
-        tooling:
-          - type: function
-            config:
-              tools:
-                - name: list_directory
-                - name: read_file_segment
-                - name: search_in_files
-                - name: save_file
-                - name: describe_available_files
-
-    # Nodo 3: QA/Verificador
-    - id: QAVerifier
-      type: agent
-      description: Verifica la implementacion y reporta errores
-      context_window: -1
-      config:
-        provider: openai
-        name: gpt-4o
-        base_url: ${BASE_URL}
-        api_key: ${API_KEY}
-        role: |
-          You are a MuleSoft QA Engineer and Code Reviewer.
-
-          Review the Mule application code and verify:
-          1. XML syntax correctness
-          2. DataWeave expression validity
-          3. Proper error handling implementation
-          4. Security best practices
-          5. Alignment with the original specification
-          6. Mule 4 best practices compliance
-
-          Output format:
-          If ALL checks pass:
-            Start your response with: "APPROVED"
-            Then provide a brief summary of what was verified.
-
-          If there are issues:
-            Start your response with: "NEEDS_REVISION"
-            Then list each issue with:
-            - File/component affected
-            - Description of the problem
-            - Suggested fix
-
-          Be thorough but fair. Only reject for real issues, not style preferences.
-
-          REFERENCE DOCUMENTATION:
-          You have access to internal MuleSoft standards in the workspace at:
-          mule-docs/
-          Key resources (use the file tools to read them):
-          - mule-docs/templates/mulesoft-api-led-app-template.md (expected structure and compliance checklist)
-          - mule-docs/conventions/naming-conventions.md (naming standards to enforce)
-          - mule-docs/docs/governance/ (governance policies)
-          Use list_directory and read_file_segment to validate organizational compliance.
+          Each file in separate code block with filename. Fix any feedback issues.
+          DOCS: mule-docs/templates/mulesoft-api-led-app-template.md (structure), mule-docs/conventions/naming-conventions.md
         params:
           temperature: 0.1
           max_tokens: 3000
@@ -160,18 +68,44 @@ graph:
               tools:
                 - name: list_directory
                 - name: read_file_segment
-                - name: search_in_files
-                - name: describe_available_files
+                - name: save_file
+
+    # Nodo 3: QA/Verificador
+    - id: QAVerifier
+      type: agent
+      description: Verifica la implementacion y reporta errores
+      context_window: 2
+      config:
+        provider: openai
+        name: gpt-4o
+        base_url: ${BASE_URL}
+        api_key: ${API_KEY}
+        role: |
+          MuleSoft QA Engineer. Verify: XML syntax, DataWeave validity, error handling, security, spec alignment.
+
+          Response format:
+          - If OK: Start with "APPROVED" + brief summary
+          - If issues: Start with "NEEDS_REVISION" + list issues with file, problem, fix
+
+          Only reject for real issues, not style preferences.
+        params:
+          temperature: 0.1
+          max_tokens: 1500
+        tooling:
+          - type: function
+            config:
+              tools:
+                - name: read_file_segment
 
     # Nodo 4: Loop Counter para limitar iteraciones
     - id: RevisionLoopCounter
       type: loop_counter
-      description: Limita las iteraciones de revision a 3
+      description: Limita las iteraciones de revision a 2
       context_window: 0
       config:
-        max_iterations: 3
+        max_iterations: 2
         reset_on_emit: false
-        message: 'Maximum revision iterations reached. Proceeding with current implementation.'
+        message: 'Max revisions reached. Proceeding with current implementation.'
 
     # Nodo 5: Final
     - id: FINAL
@@ -181,15 +115,12 @@ graph:
       config: {}
 
   edges:
-    # Spec -> Developer
     - from: SpecArchitect
       to: MuleDeveloper
 
-    # Developer -> QA
     - from: MuleDeveloper
       to: QAVerifier
 
-    # QA aprobado -> Final
     - from: QAVerifier
       to: FINAL
       condition:
@@ -199,7 +130,6 @@ graph:
             - APPROVED
           case_sensitive: false
 
-    # QA con errores -> Loop Counter
     - from: QAVerifier
       to: RevisionLoopCounter
       condition:
@@ -209,7 +139,6 @@ graph:
             - NEEDS_REVISION
           case_sensitive: false
 
-    # Loop Counter -> Developer (para correccion)
     - from: RevisionLoopCounter
       to: MuleDeveloper
 
