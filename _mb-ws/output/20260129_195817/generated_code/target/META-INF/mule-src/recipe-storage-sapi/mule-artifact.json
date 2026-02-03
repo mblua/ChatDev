@@ -1,0 +1,8 @@
+{
+  "minMuleVersion": "4.10.1",
+  "secureProperties": [],
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule"
+  }
+}

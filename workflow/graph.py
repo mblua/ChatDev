@@ -1,6 +1,9 @@
 ﻿"""Graph orchestration adapted to ChatDev design_0.4.0 workflows."""
 
+import os
 import threading
+from datetime import datetime
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from runtime.node.agent.memory import MemoryBase, MemoryFactory, MemoryManager
@@ -121,6 +124,25 @@ class GraphExecutor:
     def _create_logger(self) -> WorkflowLogger:
         """Create and return a logger instance."""
         return WorkflowLogger(self.graph.name, self.graph.log_level)
+
+    def _save_edge_log(self, from_node_id: str, to_node_id: str, content: str) -> None:
+        """Save the message content being passed between nodes to a log file."""
+        try:
+            if not self.code_workspace:
+                return
+            logs_dir = Path(self.code_workspace) / "logs"
+            logs_dir.mkdir(parents=True, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{timestamp}_{from_node_id}_to_{to_node_id}.md"
+            filepath = logs_dir / filename
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(f"# {from_node_id} -> {to_node_id}\n")
+                f.write(f"**Timestamp:** {datetime.now().isoformat()}\n\n")
+                f.write("---\n\n")
+                f.write(content)
+            self.log_manager.debug(f"Edge log saved: {filepath}")
+        except Exception as e:
+            self.log_manager.warning(f"Failed to save edge log: {e}")
 
     @classmethod
     def execute_graph(
@@ -637,6 +659,9 @@ class GraphExecutor:
             # For each output message, process all edges
             for output_msg in output_messages:
                 for edge_link in node.iter_outgoing_edges():
+                    # Save edge log before processing
+                    target_node_id = edge_link.target.id if edge_link.target else "unknown"
+                    self._save_edge_log(node.id, target_node_id, output_msg.text_content())
                     self._process_edge_output(edge_link, output_msg, node)
             
             if output_messages and node.context_window != 0 and not context_restored:

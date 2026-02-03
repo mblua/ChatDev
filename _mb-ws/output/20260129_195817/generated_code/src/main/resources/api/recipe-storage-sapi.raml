@@ -1,0 +1,92 @@
+#%RAML 1.0
+title: Recipe Storage System API
+version: v1
+baseUri: http://localhost:8081/api
+mediaType: application/json
+
+types:
+  RecipeRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Name of the recipe
+        example: "Chocolate Chip Cookies"
+      ingredients:
+        type: array
+        items:
+          type: string
+        description: List of ingredients
+        example: ["2 cups flour", "1 cup sugar", "1 cup chocolate chips"]
+      instructions:
+        type: string
+        description: Cooking instructions
+        example: "Mix ingredients and bake at 350F for 12 minutes."
+      servings:
+        type: integer
+        description: Number of servings
+        example: 24
+
+  RecipeResponse:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Success message
+        example: "Recipe saved successfully"
+      recipeId:
+        type: string
+        description: Unique identifier for the recipe
+        example: "550e8400-e29b-41d4-a716-446655440000"
+      filePath:
+        type: string
+        description: Path where the recipe file was saved
+        example: "/tmp/recipes/20240115T143022_chocolate-chip-cookies.json"
+      timestamp:
+        type: string
+        description: ISO 8601 timestamp
+        example: "2024-01-15T14:30:22.123Z"
+
+  ErrorResponse:
+    type: object
+    properties:
+      errorCode:
+        type: string
+        description: Error code identifier
+        example: "BAD_REQUEST"
+      message:
+        type: string
+        description: Human readable error message
+        example: "Invalid request format"
+      timestamp:
+        type: string
+        description: ISO 8601 timestamp
+        example: "2024-01-15T14:30:22.123Z"
+      correlationId:
+        type: string
+        description: Request correlation ID
+        example: "550e8400-e29b-41d4-a716-446655440000"
+
+/recipes:
+  post:
+    displayName: Save Recipe
+    description: Save a new recipe to the filesystem
+    body:
+      application/json:
+        type: RecipeRequest
+    responses:
+      201:
+        description: Recipe saved successfully
+        body:
+          application/json:
+            type: RecipeResponse
+      400:
+        description: Bad request - Invalid input
+        body:
+          application/json:
+            type: ErrorResponse
+      500:
+        description: Internal server error
+        body:
+          application/json:
+            type: ErrorResponse

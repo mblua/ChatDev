@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:file="http://www.mulesoft.org/schema/mule/file"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+        http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+    <flow name="saveRecipeFlow">
+        <ee:transform doc:name="Prepare Recipe Data">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="recipeId"><![CDATA[%dw 2.0
+output text/plain
+---
+uuid()]]></ee:set-variable>
+                <ee:set-variable variableName="timestamp"><![CDATA[%dw 2.0
+output text/plain
+---
+now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"}]]></ee:set-variable>
+                <ee:set-variable variableName="fileTimestamp"><![CDATA[%dw 2.0
+output text/plain
+---
+now() as String {format: "yyyyMMdd'T'HHmmss"}]]></ee:set-variable>
+                <ee:set-variable variableName="sanitizedName"><![CDATA[%dw 2.0
+output text/plain
+---
+lower(payload.name) replace /[^a-z0-9]+/ with "-" replace /^-|-$/ with ""]]></ee:set-variable>
+                <ee:set-variable variableName="originalPayload"><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <ee:transform doc:name="Build Recipe File Content">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    recipeId: vars.recipeId,
+    name: vars.originalPayload.name,
+    ingredients: vars.originalPayload.ingredients,
+    instructions: vars.originalPayload.instructions,
+    servings: vars.originalPayload.servings,
+    createdAt: vars.timestamp,
+    correlationId: vars.correlationId
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="fileName"><![CDATA[%dw 2.0
+output text/plain
+---
+vars.fileTimestamp ++ "_" ++ vars.sanitizedName ++ ".json"]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Log File Write" message="Saving recipe to file: #[vars.fileName] - Recipe ID: #[vars.recipeId]"/>
+
+        <file:write doc:name="Write Recipe File" config-ref="fileConfig" path="#[vars.fileName]">
+            <file:content><![CDATA[#[output application/json indent=true --- payload]]]></file:content>
+        </file:write>
+
+        <ee:transform doc:name="Build Response">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    message: "Recipe saved successfully",
+    recipeId: vars.recipeId,
+    filePath: p('file.basePath') ++ "/" ++ vars.fileName,
+    timestamp: vars.timestamp
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">201</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <logger level="INFO" doc:name="Log Success" message="Recipe saved successfully - Recipe ID: #[vars.recipeId], File: #[vars.fileName]"/>
+    </flow>
+
+</mule>
